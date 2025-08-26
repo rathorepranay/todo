@@ -1,3 +1,6 @@
 flask
 gunicorn
 requests
+sqlalchemy
+flask_sqlalchemy
+flask_migrate
