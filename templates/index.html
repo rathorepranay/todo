@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %} Home {% endblock title %}
+{% block body %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">MyTodo</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <!-- <li class="nav-item"><a class="nav-link active" href="#">Home</a></li> -->
+        <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+      </ul>
+      <form class="d-flex" role="search" onsubmit="return false;">
+        <input id="searchBox" class="form-control me-2" type="search" placeholder="Search todos...">
+        <button class="btn btn-outline-dark" type="button">Search</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <h2>Add a Todo</h2>
+  <form action="/" method="POST">
+    <div class="mb-3">
+      <label for="title" class="form-label">Todo Title</label>
+      <input type="text" class="form-control" name="title" id="title" required>
+    </div>
+    <div class="mb-3">
+      <label for="desc" class="form-label">Todo Description</label>
+      <input type="text" class="form-control" name="desc" id="desc" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+
+  <div class="table mt-4">
+    <h2>Your Todos</h2>
+    {% if alltodo|length == 0 %}
+      <div class="alert alert-danger">No records. Add your first todo now!</div>
+    {% else %}
+      <table class="table table-striped" id="todoTable">
+        <thead>
+          <tr>
+            <th>Sno</th>
+            <th>Done</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Date Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for Todo in alltodo %}
+          <tr>
+            <th>{{ loop.index }}</th>
+            <td>
+              <input type="checkbox" class="form-check-input todo-checkbox" data-id="{{ Todo.sno }}" {% if Todo.done %}checked{% endif %}>
+            </td>
+            <td class="{% if Todo.done %}text-decoration-line-through{% endif %}">{{ Todo.title }}</td>
+            <td class="{% if Todo.done %}text-decoration-line-through{% endif %}">{{ Todo.description }}</td>
+            <td>{{ Todo.dateCreated }}</td>
+            <td>
+              <a href="/update/{{Todo.sno}}" class="btn btn-outline-dark btn-sm mx-1">Update</a>
+              <a href="/delete/{{Todo.sno}}" class="btn btn-outline-dark btn-sm mx-1">Delete</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const searchBox = document.getElementById("searchBox");
+    const rows = document.querySelectorAll("#todoTable tbody tr");
+
+    // Search functionality
+    searchBox.addEventListener("keyup", () => {
+        const filter = searchBox.value.toLowerCase();
+        rows.forEach((row) => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
+        });
+    });
+
+    // Checkbox toggle
+    const checkboxes = document.querySelectorAll(".todo-checkbox");
+    checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener("change", () => {
+            const sno = checkbox.getAttribute("data-id");
+            fetch(`/toggle/${sno}`, { method: "POST" })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success){
+                        const row = checkbox.closest("tr");
+                        row.querySelectorAll("td")[1].classList.toggle("text-decoration-line-through");
+                        row.querySelectorAll("td")[2].classList.toggle("text-decoration-line-through");
+                    }
+                });
+        });
+    });
+});
+</script>
+{% endblock body %}
